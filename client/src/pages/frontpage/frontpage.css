@@ -18,7 +18,6 @@
 }
 
 .article-list .article-cards {
-    max-width: 100vw;
     display: flex;
     flex-wrap: wrap-reverse;
     justify-content: center;

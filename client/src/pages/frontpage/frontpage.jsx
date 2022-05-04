@@ -3,13 +3,22 @@ import { ProfileContext } from "../../hooks/loginProvider";
 import { Navbar } from "../../components/navbar/navbar";
 import "./frontpage.css";
 import { fetchJSON, useLoader } from "../../hooks/global";
-const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
+import LoadingAnimation from "../loadingpage/LoadingPage";
+import { getHumanDate } from "../../lib/getHumanDate";
+
+async function deleteArticle(title, ws) {
+  let deleteTitle = { remove: { title: title } };
+  ws.send(JSON.stringify(deleteTitle));
+  await fetchJSON("/api/articles/select/?title=" + title, {
+    method: "delete",
+  });
+}
 
 function ArticlesList({ setSelectedArticle, selectedArticle }) {
   const { userinfo } = useContext(ProfileContext);
-
   const [search, setSearch] = useState("");
   const [data, setData] = useState([]);
+  const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
 
   useEffect(() => {
     ws.onmessage = (event) => {
@@ -27,7 +36,6 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
         setData((oldState) => [...oldState, newData]);
       }
     };
-
     ws.onclose = () => {
       setTimeout(() => connect(), 1000);
     };
@@ -35,13 +43,6 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
 
   useEffect(() => {
     if (search === "") {
-      fetchJSON("/api/articles/all").then((jsonData) => {
-        setData(jsonData);
-      });
-    } else {
-      fetchJSON(`/api/articles/search/?title=${search}`).then((jsonData) => {
-        setData(jsonData.articles);
-      });
     }
   }, [search]);
 
@@ -50,13 +51,11 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
       setData(jsonData);
     });
   });
-
   async function handleSearch(event) {
     setSearch(event);
   }
-
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingAnimation />;
   }
   if (error) {
     return <div>{error.toString()}</div>;
@@ -93,20 +92,12 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
               onClick={() => selectArticle(article.title)}
             >
               <h2>{article.title}</h2>
-              <p>Published on {getHumanDate(article.date)}</p>
-              <p>Written by {article.author}</p>
-              <p>Topics: {article.topic}</p>
             </div>
           ))}
         </div>
       )}
     </div>
   );
-}
-
-function getHumanDate(timestamp) {
-  const humanDate = new Date(parseInt(timestamp)).toLocaleString();
-  return humanDate;
 }
 
 function ArticleRead({ data, setSelectedArticle }) {
@@ -117,25 +108,23 @@ function ArticleRead({ data, setSelectedArticle }) {
   }
 
   return (
-    <>
-      <>
-        <h1>{article.title}</h1>
-        <p>Created: {getHumanDate(article.date)}</p>
-        <p>Author: {article.author}</p>
-        <p>Topics: {article.topic}</p>
-        <article>{article.articleText}</article>
-        <button id={"leaveArticle"} onClick={leaveArticle}>
-          Leave article
-        </button>
-      </>
-    </>
+    <main>
+      <h1>{article.title}</h1>
+      <p>Created: {getHumanDate(article.date)}</p>
+      <p>Author: {article.author}</p>
+      <p>Topics: {article.topic}</p>
+      <article>{article.articleText}</article>
+      <button id={"leaveArticle"} onClick={leaveArticle}>
+        Leave article
+      </button>
+    </main>
   );
 }
 
 function ArticleReadWrite({ data }) {
   const article = data;
-  console.log(data);
   const { userinfo } = useContext(ProfileContext);
+  const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
 
   const [title, setTitle] = useState(article.title);
   const [topic, setTopic] = useState(article.topic);
@@ -143,7 +132,7 @@ function ArticleReadWrite({ data }) {
 
   async function updateArticle(event) {
     event.preventDefault();
-    await fetch("/api/articles/select/?originalTitle=" + article.title, {
+    await fetchJSON("/api/articles/select/?originalTitle=" + article.title, {
       method: "put",
       body: new URLSearchParams({
         title,
@@ -155,26 +144,8 @@ function ArticleReadWrite({ data }) {
     });
   }
 
-  async function deleteArticle() {
-    const deleteVar = {
-      title,
-      topic: topic,
-      articleText,
-      author: userinfo.name,
-      date: Date.now(),
-      updated: Date.now(),
-    };
-
-    let deleteTitle = { remove: { title: article.title } };
-    ws.send(JSON.stringify(deleteTitle));
-
-    await fetch("/api/articles/select/?title=" + article.title, {
-      method: "delete",
-    });
-  }
-
   return (
-    <>
+    <main>
       <form onSubmit={updateArticle}>
         <h2>Edit mode</h2>
         <label>Title</label>
@@ -200,27 +171,34 @@ function ArticleReadWrite({ data }) {
         <br />
         <button formAction={"submit"}>Publish article</button>
       </form>
-      <button onClick={deleteArticle}>Delete this article</button>
-    </>
+      <button
+        onClick={() => {
+          deleteArticle(article.title, ws);
+        }}
+      >
+        Delete this article
+      </button>
+    </main>
   );
 }
 
-function Article({ mode, selectedArticle, setSelectedArticle }) {
+export function FrontPage() {
+  const [editMode, setEditMode] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState("");
+  const { userinfo } = useContext(ProfileContext);
   const [data, setData] = useState();
+  const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
 
-  useEffect(() => {
-    ws.onmessage = (event) => {
-      const newData = JSON.parse(event.data);
+  ws.onmessage = (event) => {
+    const newData = JSON.parse(event.data);
+    if (newData.title === selectedArticle) {
+      setData(newData);
+    }
+  };
 
-      if (newData.title === selectedArticle) {
-        setData(newData);
-      }
-    };
-
-    ws.onclose = () => {
-      setTimeout(() => connect(), 1000);
-    };
-  }, [data]);
+  ws.onclose = () => {
+    setTimeout(() => connect(), 1000);
+  };
 
   useEffect(() => {
     if (selectedArticle !== "") {
@@ -233,27 +211,6 @@ function Article({ mode, selectedArticle, setSelectedArticle }) {
       );
     }
   }, [selectedArticle]);
-
-  return (
-    <main>
-      {mode === false && data !== undefined && selectedArticle !== "" && (
-        <>
-          <ArticleRead data={data} setSelectedArticle={setSelectedArticle} />
-        </>
-      )}
-      {mode === true && data !== undefined && selectedArticle !== "" && (
-        <>
-          <ArticleReadWrite data={data} />
-        </>
-      )}
-    </main>
-  );
-}
-
-export function FrontPage() {
-  const [editMode, setEditMode] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState("");
-  const { userinfo } = useContext(ProfileContext);
   return (
     <div>
       {!userinfo && (
@@ -272,11 +229,21 @@ export function FrontPage() {
               selectedArticle={selectedArticle}
               setSelectedArticle={setSelectedArticle}
             />
-            <Article
-              mode={editMode}
-              selectedArticle={selectedArticle}
-              setSelectedArticle={setSelectedArticle}
-            />
+            {editMode === false &&
+              data !== undefined &&
+              selectedArticle !== "" && (
+                <>
+                  <ArticleRead
+                    data={data}
+                    setSelectedArticle={setSelectedArticle}
+                  />
+                </>
+              )}
+            {editMode === true && data !== undefined && selectedArticle !== "" && (
+              <>
+                <ArticleReadWrite data={data} />
+              </>
+            )}
           </div>
         </>
       )}

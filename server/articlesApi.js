@@ -33,33 +33,6 @@ export function articlesApi(mongoDatabase) {
     res.sendStatus(204);
   });
 
-  router.get("/search/*", async (req, res) => {
-    const title = req.query.title;
-
-    const articles = await mongoDatabase
-      .collection("articles")
-      .find({
-        title: new RegExp(title, "i"),
-      })
-      .sort({
-        date: 1,
-      })
-      .map(({ title, date, author, topic, updated }) => ({
-        title,
-        date,
-        author,
-        topic,
-        updated,
-      }))
-      //.limit(50)
-      .toArray();
-    if (!articles) {
-      res.status(404).json({ errors });
-      return;
-    }
-    res.json({ articles });
-  });
-
   router.get("/select/*", async (req, res) => {
     const title = req.query.title;
     console.log(title);
