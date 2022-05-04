@@ -1,12 +1,19 @@
 .navbar {
     margin-top: 0;
     padding: 0;
+    left: 0;
+    right: 0;
+    height: 8vh;
     display: flex;
     border-bottom: solid black;
+    position: fixed;
+    width: 100vw;
+    background: white;
 }
 
 .navbar .pages {
     margin-left: 10px;
+    vertical-align: center;
 }
 
 .navbar .pages a:hover, .navbar .profile-stuff button:hover, .navbar .profile-stuff a:hover {

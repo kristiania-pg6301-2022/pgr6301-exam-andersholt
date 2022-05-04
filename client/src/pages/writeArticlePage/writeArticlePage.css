@@ -1,0 +1,27 @@
+.article-page {
+    position: absolute;
+    top: 0;
+    width: 100vw;
+}
+
+.publish {
+    text-align: center;
+    width: fit-content;
+    margin: 10vh auto auto auto;
+}
+
+.publish input {
+    width: 30vw;
+    height: 3vh;
+}
+
+.publish label {
+    font-weight: bold;
+}
+
+
+.publish textarea {
+    height: 80vh;
+    width: 70vw;
+    resize: none;
+}

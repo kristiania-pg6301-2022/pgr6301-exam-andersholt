@@ -5,7 +5,7 @@ import "./loginPage.css"
 export function LoginPage() {
     return (
         <div className={"login"}>
-            <h1>You need to log in to access this page!</h1>
+            <h1>Login to access the articles.</h1>
             <div>
                 <Link to={"/login/google"}>Google login</Link>
             </div>

@@ -23,5 +23,8 @@
     "nodemon": "^2.0.15",
     "save-dev": "^0.0.1-security",
     "ws": "^8.5.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.5.1"
   }
 }
