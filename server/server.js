@@ -26,12 +26,20 @@ const wsServer = new WebSocketServer({ noServer: true });
 wsServer.on("connect", (socket) => {
   sockets.push(socket);
   socket.on("message", (data) => {
-    const { title, date, author, topic, updated, articleText } =
+    const { title, date, author, topic, updated, articleText, remove } =
       JSON.parse(data);
 
     for (const recipient of sockets) {
       recipient.send(
-        JSON.stringify({ title, date, author, topic, updated, articleText })
+        JSON.stringify({
+          title,
+          date,
+          author,
+          topic,
+          updated,
+          articleText,
+          remove,
+        })
       );
     }
   });

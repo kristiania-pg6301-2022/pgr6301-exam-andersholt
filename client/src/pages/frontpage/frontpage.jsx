@@ -14,7 +14,18 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
   useEffect(() => {
     ws.onmessage = (event) => {
       const newData = JSON.parse(event.data);
-      setData((oldState) => [...oldState, newData]);
+      console.log(newData);
+      if (newData.remove) {
+        const buffer = [];
+        data.map((item) => {
+          if (item.title !== newData.remove.title) {
+            buffer.push(item);
+          }
+        });
+        setData(buffer);
+      } else {
+        setData((oldState) => [...oldState, newData]);
+      }
     };
 
     ws.onclose = () => {
@@ -121,8 +132,9 @@ function ArticleRead({ data, setSelectedArticle }) {
   );
 }
 
-function ArticleReadWrite(data) {
+function ArticleReadWrite({ data }) {
   const article = data;
+  console.log(data);
   const { userinfo } = useContext(ProfileContext);
 
   const [title, setTitle] = useState(article.title);
@@ -144,6 +156,18 @@ function ArticleReadWrite(data) {
   }
 
   async function deleteArticle() {
+    const deleteVar = {
+      title,
+      topic: topic,
+      articleText,
+      author: userinfo.name,
+      date: Date.now(),
+      updated: Date.now(),
+    };
+
+    let deleteTitle = { remove: { title: article.title } };
+    ws.send(JSON.stringify(deleteTitle));
+
     await fetch("/api/articles/select/?title=" + article.title, {
       method: "delete",
     });
