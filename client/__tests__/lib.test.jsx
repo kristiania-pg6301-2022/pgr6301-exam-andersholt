@@ -17,6 +17,6 @@ describe("human date", () => {
     expect(res).toContain("1/1/1970");
 
     res = getHumanDate(1651751231000);
-    expect(res).toEqual("5/5/2022, 1:47:11 PM");
+    expect(res).toContain("5/5/2022");
   });
 });
