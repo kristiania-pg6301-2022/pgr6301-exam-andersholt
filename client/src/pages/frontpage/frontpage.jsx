@@ -14,17 +14,40 @@ async function deleteArticle(title, ws) {
   });
 }
 
-function ArticlesList({ setSelectedArticle, selectedArticle }) {
+function ArticleCard({ data, setSelectedArticle }) {
   const { userinfo } = useContext(ProfileContext);
-  const [search, setSearch] = useState("");
-  const [selectedFilterItems, setSelectedFilterItems] = useState([]);
-  const [filterItems, setFilterItems] = useState([]);
+  function selectArticle(title) {
+    if (userinfo) {
+      setSelectedArticle(title);
+    } else {
+      if (window.confirm("Log in to read articles")) {
+        window.location.href = window.location.origin + "/login";
+      }
+    }
+  }
+  return (
+    <div className={"article-cards"}>
+      {data.map((article, index) => (
+        <div
+          key={index}
+          id="article-card"
+          onClick={() => selectArticle(article.title)}
+        >
+          <h2>{article.title}</h2>
+        </div>
+      ))}
+    </div>
+  );
+}
 
+function ArticlesList({ setSelectedArticle, selectedArticle }) {
+  //const [selectedFilterItems, setSelectedFilterItems] = useState([]);
+  const [filterItems, setFilterItems] = useState([]);
   const [data, setData] = useState([]);
   const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
+  /*
   useEffect(() => {
     const bufferAllTopics = [];
-    console.log(data);
     data.map((article) => {
       article.topics.map((topic) => {
         bufferAllTopics.push(topic.toLowerCase().trim());
@@ -46,10 +69,11 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
     setFilterItems(allTopicsWithCounter);
   }, [data]);
 
+   */
+
   useEffect(() => {
     ws.onmessage = (event) => {
       const newData = JSON.parse(event.data);
-      console.log(newData);
       if (newData.remove) {
         const buffer = [];
         data.map((item) => {
@@ -68,12 +92,11 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
   }, [data]);
 
   useEffect(() => {
-    if (selectedFilterItems.length === 0) {
-      fetchJSON("/api/articles/all").then((jsonData) => {
-        setData(jsonData);
-        console.log(jsonData);
-      });
-    } else {
+    //if (selectedFilterItems.length === 0) {
+    fetchJSON("/api/articles/all").then((jsonData) => {
+      setData(jsonData);
+    });
+    /*} else {
       const items = [];
       selectedFilterItems.map((item) => {
         items.push(item.topic);
@@ -82,37 +105,19 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
         setData(jsonData.articles);
       });
     }
-  }, [selectedFilterItems]);
-  async function handleSearch(event) {
-    setSearch(event);
-  }
 
-  function selectArticle(title) {
-    if (userinfo) {
-      setSelectedArticle(title);
-    } else {
-      if (window.confirm("Log in to read articles")) {
-        window.location.href = window.location.origin + "/login";
-      }
-    }
-  }
+     */
+  }, []);
 
   let selectedArticleWidth = "20vw";
   if (selectedArticle === "") {
     selectedArticleWidth = "100vw";
   }
-
+  /*
   function changeFilter(topic) {
     if (!selectedFilterItems.includes(topic)) {
       setSelectedFilterItems((prevState) => [...prevState, topic]);
-      setFilterItems(
-        filterItems.filter(function (item) {
-          return item.topic !== topic.topic;
-        })
-      );
     } else {
-      setFilterItems((prevState) => [...prevState, topic]);
-
       setSelectedFilterItems(
         selectedFilterItems.filter(function (item) {
           return item.topic !== topic.topic;
@@ -121,8 +126,11 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
     }
   }
 
+ */
+
   return (
     <div className="article-list" style={{ width: selectedArticleWidth }}>
+      {/*
       <div className={"filter-container"}>
         {filterItems.map((item, key) => (
           <button
@@ -134,37 +142,20 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
             {item.topic + " (" + item.counter + ")"}
           </button>
         ))}
+
         <div>
           {selectedFilterItems.map((item, key) => (
-            <button
-              key={key}
-              onClick={(e) => {
-                changeFilter(item);
-              }}
-            >
-              {item.topic}
-            </button>
+            <div key={key}>{item.topic}</div>
           ))}
         </div>
+
       </div>
-
-      <label>Search:</label>
-      <br />
-      <input value={search} onChange={(e) => handleSearch(e.target.value)} />
-      {search && <div>Results for {search}</div>}
-
+       */}
       {data && (
-        <div className={"article-cards"}>
-          {data.map((article, index) => (
-            <div
-              key={index}
-              id="article-card"
-              onClick={() => selectArticle(article.title)}
-            >
-              <h2>{article.title}</h2>
-            </div>
-          ))}
-        </div>
+        <ArticleCard
+          data={data}
+          setSelectedArticle={setSelectedArticle}
+        ></ArticleCard>
       )}
     </div>
   );
@@ -176,8 +167,6 @@ function ArticleRead({ data, setSelectedArticle }) {
   function leaveArticle() {
     setSelectedArticle("");
   }
-
-  console.log(article.topics);
   return (
     <main>
       <h1>{article.title}</h1>
@@ -200,10 +189,8 @@ function ArticleRead({ data, setSelectedArticle }) {
 function ArticleReadWrite({ data }) {
   const article = data;
 
-  console.log(article);
   const { userinfo } = useContext(ProfileContext);
   const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
-  console.log(article.topics);
 
   const [title, setTitle] = useState(article.title);
   const [topics, setTopics] = useState(article.topics);
