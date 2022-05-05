@@ -1,8 +1,10 @@
 [![Coverage Status](https://coveralls.io/repos/github/kristiania-pg6301-2022/pgr6301-exam-andersholt/badge.svg?branch=main&t=NhrPqK)](https://coveralls.io/github/kristiania-pg6301-2022/pgr6301-exam-andersholt?branch=main)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+
 
 # PG6301 eksamen Kristiania News
-Heroku: https://pg6301-exam.herokuapp.com/
-Test rapport: https://coveralls.io/github/kristiania-pg6301-2022/pgr6301-exam-andersholt
+* Heroku: https://pg6301-exam.herokuapp.com/
+* Test rapport: https://coveralls.io/github/kristiania-pg6301-2022/pgr6301-exam-andersholt
 
 ## Egenutfylling av funksjonelle krav
 
