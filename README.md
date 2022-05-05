@@ -2,6 +2,7 @@
 
 [Heroku](link til heroku)
 [Test rapport](link til testrapport)
+[![Coverage Status](https://coveralls.io/repos/github/kristiania-pg6301-2022/pgr6301-exam-andersholt/badge.svg?branch=main&t=NhrPqK)](https://coveralls.io/github/kristiania-pg6301-2022/pgr6301-exam-andersholt?branch=main)
 
 ## Tips
 
