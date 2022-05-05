@@ -13,7 +13,7 @@ describe("randomString", () => {
 describe("human date", () => {
   it("converts to locale string", async () => {
     let res = getHumanDate(0);
-
+    //issue here on github -> locale string is not the same in US and Norway, which means that this one fails around 2400, when the date shifts
     expect(res).toContain("1/1/1970");
 
     res = getHumanDate(1651751231000);
