@@ -69,6 +69,12 @@ export function articlesApi(mongoDatabase) {
     console.log(originalTitle);
 
     const { title, updated, author, topics, articleText } = req.body;
+    let results = topics.split(",");
+    const topicsList = [];
+    results.map((element) => {
+      topicsList.push(element.trim().toLowerCase());
+    });
+
     mongoDatabase.collection("articles").updateOne(
       { title: originalTitle },
       {
@@ -76,7 +82,7 @@ export function articlesApi(mongoDatabase) {
           title,
           updated,
           author,
-          topics,
+          topics: topicsList,
           articleText,
         },
       }

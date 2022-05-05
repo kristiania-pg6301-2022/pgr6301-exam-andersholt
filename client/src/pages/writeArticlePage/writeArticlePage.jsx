@@ -2,11 +2,12 @@ import React, { useContext, useState } from "react";
 import { ProfileContext } from "../../hooks/loginProvider";
 import "./writeArticlePage.css";
 import { Navbar } from "../../components/navbar/navbar";
+import { ArticlesApiContext } from "../../articlesApiContext";
 const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
 
 export function ArticleWrite() {
   const { userinfo } = useContext(ProfileContext);
-
+  const { writeArticle } = useContext(ArticlesApiContext);
   const [title, setTitle] = useState("");
   const [topics, setTopics] = useState([]);
   const [articleText, setArticleText] = useState("");
@@ -18,14 +19,8 @@ export function ArticleWrite() {
       topics: topics,
       articleText,
       author: userinfo.name,
-      date: Date.now(),
-      updated: Date.now(),
     };
-    ws.send(JSON.stringify(article));
-    await fetch("/api/articles/publish", {
-      method: "post",
-      body: new URLSearchParams(article),
-    });
+    await writeArticle(ws, article);
   }
 
   return (
@@ -43,7 +38,7 @@ export function ArticleWrite() {
               onChange={(e) => setTitle(e.target.value)}
             />
             <p>Author: {userinfo.name}</p>
-            <label>Type:</label>
+            <label>Topics:</label>
             <br />
             <input
               value={topics}

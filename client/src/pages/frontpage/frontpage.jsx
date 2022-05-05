@@ -2,17 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import { ProfileContext } from "../../hooks/loginProvider";
 import { Navbar } from "../../components/navbar/navbar";
 import "./frontpage.css";
-import { fetchJSON, useLoader } from "../../hooks/global";
-import LoadingAnimation from "../loadingpage/LoadingPage";
 import { getHumanDate } from "../../lib/getHumanDate";
-
-async function deleteArticle(title, ws) {
-  let deleteTitle = { remove: { title: title } };
-  ws.send(JSON.stringify(deleteTitle));
-  await fetchJSON("/api/articles/select/?title=" + title, {
-    method: "delete",
-  });
-}
+import { ArticlesApiContext } from "../../articlesApiContext";
 
 function ArticleCard({ data, setSelectedArticle }) {
   const { userinfo } = useContext(ProfileContext);
@@ -40,10 +31,11 @@ function ArticleCard({ data, setSelectedArticle }) {
   );
 }
 
-function ArticlesList({ setSelectedArticle, selectedArticle }) {
+export function ArticlesList({ setSelectedArticle, selectedArticle }) {
+  const { getAllArticles } = useContext(ArticlesApiContext);
   //const [selectedFilterItems, setSelectedFilterItems] = useState([]);
   const [filterItems, setFilterItems] = useState([]);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState([getAllArticles]);
   const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
   /*
   useEffect(() => {
@@ -91,11 +83,10 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
     };
   }, [data]);
 
-  useEffect(() => {
+  useEffect(async () => {
     //if (selectedFilterItems.length === 0) {
-    fetchJSON("/api/articles/all").then((jsonData) => {
-      setData(jsonData);
-    });
+    const articles = await getAllArticles();
+    setData(articles);
     /*} else {
       const items = [];
       selectedFilterItems.map((item) => {
@@ -186,28 +177,18 @@ function ArticleRead({ data, setSelectedArticle }) {
   );
 }
 
-function ArticleReadWrite({ data }) {
-  const article = data;
-
+function ArticleReadWrite({ data, setSelectedArticle }) {
   const { userinfo } = useContext(ProfileContext);
-  const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
+  const { deleteArticle, updateArticleApi } = useContext(ArticlesApiContext);
 
-  const [title, setTitle] = useState(article.title);
-  const [topics, setTopics] = useState(article.topics);
-  const [articleText, setArticleText] = useState(article.articleText);
+  const [title, setTitle] = useState(data.title);
+  const [topics, setTopics] = useState(data.topics);
+  const [articleText, setArticleText] = useState(data.articleText);
 
   async function updateArticle(event) {
     event.preventDefault();
-    await fetchJSON("/api/articles/select/?originalTitle=" + article.title, {
-      method: "put",
-      body: new URLSearchParams({
-        title,
-        topics,
-        articleText,
-        author: userinfo.name,
-        updated: Date.now(),
-      }),
-    });
+    const article = { title, topics, articleText, author: userinfo.name };
+    await updateArticleApi(data.title, article);
   }
 
   return (
@@ -222,10 +203,10 @@ function ArticleReadWrite({ data }) {
           onChange={(e) => setTitle(e.target.value)}
         />
         <p>
-          Created at {getHumanDate(article.date)} and last edited at:{" "}
-          {getHumanDate(article.updated)}
+          Created at {getHumanDate(data.date)} and last edited at:{" "}
+          {getHumanDate(data.updated)}
         </p>
-        <p>Author: {article.author}</p>
+        <p>Author: {data.author}</p>
         <label>Topics</label>
         <br />
         <input
@@ -242,7 +223,8 @@ function ArticleReadWrite({ data }) {
       </form>
       <button
         onClick={() => {
-          deleteArticle(article.title, ws);
+          deleteArticle(data.title);
+          setSelectedArticle("");
         }}
       >
         Delete this article
@@ -255,6 +237,8 @@ export function FrontPage() {
   const [editMode, setEditMode] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState("");
   const { userinfo } = useContext(ProfileContext);
+  const { getSelectedArticle } = useContext(ArticlesApiContext);
+
   const [data, setData] = useState();
   const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
 
@@ -269,15 +253,10 @@ export function FrontPage() {
     setTimeout(() => connect(), 1000);
   };
 
-  useEffect(() => {
+  useEffect(async () => {
     if (selectedArticle !== "") {
-      fetchJSON("/api/articles/select/?title=" + selectedArticle).then(
-        (jsonData) => {
-          if (jsonData) {
-            setData(jsonData.article[0]);
-          }
-        }
-      );
+      const result = await getSelectedArticle(selectedArticle);
+      setData(result);
     }
   }, [selectedArticle]);
   return (
@@ -310,7 +289,10 @@ export function FrontPage() {
               )}
             {editMode === true && data !== undefined && selectedArticle !== "" && (
               <>
-                <ArticleReadWrite data={data} />
+                <ArticleReadWrite
+                  data={data}
+                  setSelectedArticle={setSelectedArticle}
+                />
               </>
             )}
           </div>
