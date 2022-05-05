@@ -2,7 +2,7 @@
 
 # PG6301 eksamen Kristiania News
 Heroku: https://pg6301-exam.herokuapp.com/
-Test rapport: https://coveralls.io/repos/github/kristiania-pg6301-2022/pgr6301-exam-andersholt
+Test rapport: https://coveralls.io/github/kristiania-pg6301-2022/pgr6301-exam-andersholt
 
 ## Egenutfylling av funksjonelle krav
 
@@ -15,5 +15,3 @@ Test rapport: https://coveralls.io/repos/github/kristiania-pg6301-2022/pgr6301-e
 * [x] Login med OpenID Connect (både Google og Active Directory)
 * [x] Web Sockets
 * [] Test coverage på 50-70% eller bedre dokumentert med Github Actions
-
- 
