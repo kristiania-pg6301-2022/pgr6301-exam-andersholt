@@ -8,14 +8,14 @@ export function ArticleWrite() {
   const { userinfo } = useContext(ProfileContext);
 
   const [title, setTitle] = useState("");
-  const [topic, setTopic] = useState([]);
+  const [topics, setTopics] = useState([]);
   const [articleText, setArticleText] = useState("");
 
   async function publishArticle(event) {
     event.preventDefault();
     const article = {
       title,
-      topic: topic,
+      topics: topics,
       articleText,
       author: userinfo.name,
       date: Date.now(),
@@ -46,8 +46,8 @@ export function ArticleWrite() {
             <label>Type:</label>
             <br />
             <input
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
+              value={topics}
+              onChange={(e) => setTopics(e.target.value)}
             />{" "}
             <br />
             <label>Article:</label>

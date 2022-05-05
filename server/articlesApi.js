@@ -9,11 +9,11 @@ export function articlesApi(mongoDatabase) {
       .sort({
         date: 1,
       })
-      .map(({ title, date, author, topic, updated }) => ({
+      .map(({ title, date, author, topics, updated }) => ({
         title,
         date,
         author,
-        topic,
+        topics,
         updated,
       }))
       .toArray();
@@ -21,13 +21,18 @@ export function articlesApi(mongoDatabase) {
   });
 
   router.post("/publish", async (req, res) => {
-    const { title, date, author, topic, articleText } = req.body;
-    const topics = topic.split(",");
+    const { title, date, author, topics, articleText } = req.body;
+    let results = topics.split(",");
+    const topicsList = [];
+    results.map((element) => {
+      topicsList.push(element.trim().toLowerCase());
+    });
+
     mongoDatabase.collection("articles").insertOne({
       title,
       date,
       author,
-      topics,
+      topics: topicsList,
       articleText,
     });
     res.sendStatus(204);
@@ -42,11 +47,11 @@ export function articlesApi(mongoDatabase) {
       .find({
         title,
       })
-      .map(({ title, date, author, topic, articleText, updated }) => ({
+      .map(({ title, date, author, topics, articleText, updated }) => ({
         title,
         date,
         author,
-        topic,
+        topics,
         articleText,
         updated,
       }))
@@ -63,7 +68,7 @@ export function articlesApi(mongoDatabase) {
 
     console.log(originalTitle);
 
-    const { title, updated, author, topic, articleText } = req.body;
+    const { title, updated, author, topics, articleText } = req.body;
     mongoDatabase.collection("articles").updateOne(
       { title: originalTitle },
       {
@@ -71,7 +76,7 @@ export function articlesApi(mongoDatabase) {
           title,
           updated,
           author,
-          topic,
+          topics,
           articleText,
         },
       }
@@ -83,6 +88,34 @@ export function articlesApi(mongoDatabase) {
     const title = req.query.title;
     mongoDatabase.collection("articles").deleteOne({ title: title });
     res.json({ message: "done" });
+  });
+
+  router.get("/filter/*", async (req, res) => {
+    const topics = req.query.topics.split(",");
+    console.log(topics);
+    const articles = await mongoDatabase
+      .collection("articles")
+      .find({
+        topics: { $all: topics },
+      })
+      .sort({
+        date: 1,
+      })
+      .map(({ title, date, author, topics, updated }) => ({
+        title,
+        date,
+        author,
+        topics,
+        updated,
+      }))
+      .toArray();
+    console.log(articles.length);
+
+    if (!articles) {
+      res.status(404).json({ errors });
+      return;
+    }
+    res.json({ articles });
   });
 
   return router;

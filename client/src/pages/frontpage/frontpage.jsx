@@ -17,8 +17,34 @@ async function deleteArticle(title, ws) {
 function ArticlesList({ setSelectedArticle, selectedArticle }) {
   const { userinfo } = useContext(ProfileContext);
   const [search, setSearch] = useState("");
+  const [selectedFilterItems, setSelectedFilterItems] = useState([]);
+  const [filterItems, setFilterItems] = useState([]);
+
   const [data, setData] = useState([]);
   const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
+  useEffect(() => {
+    const bufferAllTopics = [];
+    console.log(data);
+    data.map((article) => {
+      article.topics.map((topic) => {
+        bufferAllTopics.push(topic.toLowerCase().trim());
+      });
+    });
+    const allTopicsWithCounter = [];
+
+    for (let i = 0; i < bufferAllTopics.length; i++) {
+      const index = allTopicsWithCounter.findIndex((topic) => {
+        return topic.topic === bufferAllTopics[i];
+      });
+
+      if (index !== -1) {
+        allTopicsWithCounter[index].counter++;
+      } else {
+        allTopicsWithCounter.push({ topic: bufferAllTopics[i], counter: 1 });
+      }
+    }
+    setFilterItems(allTopicsWithCounter);
+  }, [data]);
 
   useEffect(() => {
     ws.onmessage = (event) => {
@@ -42,23 +68,23 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
   }, [data]);
 
   useEffect(() => {
-    if (search === "") {
+    if (selectedFilterItems.length === 0) {
+      fetchJSON("/api/articles/all").then((jsonData) => {
+        setData(jsonData);
+        console.log(jsonData);
+      });
+    } else {
+      const items = [];
+      selectedFilterItems.map((item) => {
+        items.push(item.topic);
+      });
+      fetchJSON(`/api/articles/filter/?topics=${items}`).then((jsonData) => {
+        setData(jsonData.articles);
+      });
     }
-  }, [search]);
-
-  const { error, loading } = useLoader(async () => {
-    return await fetchJSON("/api/articles/all").then((jsonData) => {
-      setData(jsonData);
-    });
-  });
+  }, [selectedFilterItems]);
   async function handleSearch(event) {
     setSearch(event);
-  }
-  if (loading) {
-    return <LoadingAnimation />;
-  }
-  if (error) {
-    return <div>{error.toString()}</div>;
   }
 
   function selectArticle(title) {
@@ -76,8 +102,52 @@ function ArticlesList({ setSelectedArticle, selectedArticle }) {
     selectedArticleWidth = "100vw";
   }
 
+  function changeFilter(topic) {
+    if (!selectedFilterItems.includes(topic)) {
+      setSelectedFilterItems((prevState) => [...prevState, topic]);
+      setFilterItems(
+        filterItems.filter(function (item) {
+          return item.topic !== topic.topic;
+        })
+      );
+    } else {
+      setFilterItems((prevState) => [...prevState, topic]);
+
+      setSelectedFilterItems(
+        selectedFilterItems.filter(function (item) {
+          return item.topic !== topic.topic;
+        })
+      );
+    }
+  }
+
   return (
     <div className="article-list" style={{ width: selectedArticleWidth }}>
+      <div className={"filter-container"}>
+        {filterItems.map((item, key) => (
+          <button
+            key={key}
+            onClick={(e) => {
+              changeFilter(item);
+            }}
+          >
+            {item.topic + " (" + item.counter + ")"}
+          </button>
+        ))}
+        <div>
+          {selectedFilterItems.map((item, key) => (
+            <button
+              key={key}
+              onClick={(e) => {
+                changeFilter(item);
+              }}
+            >
+              {item.topic}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <label>Search:</label>
       <br />
       <input value={search} onChange={(e) => handleSearch(e.target.value)} />
@@ -107,12 +177,18 @@ function ArticleRead({ data, setSelectedArticle }) {
     setSelectedArticle("");
   }
 
+  console.log(article.topics);
   return (
     <main>
       <h1>{article.title}</h1>
       <p>Created: {getHumanDate(article.date)}</p>
       <p>Author: {article.author}</p>
-      <p>Topics: {article.topic}</p>
+      <p>
+        Topics:
+        {article.topics.map((topic) => {
+          return " - " + topic;
+        })}
+      </p>
       <article>{article.articleText}</article>
       <button id={"leaveArticle"} onClick={leaveArticle}>
         Leave article
@@ -123,11 +199,14 @@ function ArticleRead({ data, setSelectedArticle }) {
 
 function ArticleReadWrite({ data }) {
   const article = data;
+
+  console.log(article);
   const { userinfo } = useContext(ProfileContext);
   const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
+  console.log(article.topics);
 
   const [title, setTitle] = useState(article.title);
-  const [topic, setTopic] = useState(article.topic);
+  const [topics, setTopics] = useState(article.topics);
   const [articleText, setArticleText] = useState(article.articleText);
 
   async function updateArticle(event) {
@@ -136,7 +215,7 @@ function ArticleReadWrite({ data }) {
       method: "put",
       body: new URLSearchParams({
         title,
-        topic,
+        topics,
         articleText,
         author: userinfo.name,
         updated: Date.now(),
@@ -160,9 +239,12 @@ function ArticleReadWrite({ data }) {
           {getHumanDate(article.updated)}
         </p>
         <p>Author: {article.author}</p>
-        <label>Topic</label>
+        <label>Topics</label>
         <br />
-        <input value={topic} onChange={(e) => setTopic(e.target.value)} />{" "}
+        <input
+          value={topics}
+          onChange={(e) => setTopics(e.target.value)}
+        />{" "}
         <br />
         <textarea
           value={articleText}
