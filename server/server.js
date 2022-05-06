@@ -3,7 +3,7 @@ import * as path from "path";
 import bodyParser from "body-parser";
 import loginApi from "./loginApi.js";
 import { MongoClient } from "mongodb";
-import { articlesApi } from "./articlesApi.js";
+import { ArticlesApi } from "./articlesApi.js";
 import { WebSocketServer } from "ws";
 
 const app = express();
@@ -16,7 +16,7 @@ mongoClient.connect().then(async () => {
   console.log("Connected to MongoDB");
   app.use(
     "/api/articles",
-    articlesApi(mongoClient.db(process.env.MONGO_ARTICLEDB || "articles_app"))
+    ArticlesApi(mongoClient.db(process.env.MONGO_ARTICLEDB || "articles_app"))
   );
 });
 

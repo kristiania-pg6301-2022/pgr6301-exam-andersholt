@@ -33,35 +33,8 @@ function ArticleCard({ data, setSelectedArticle }) {
 
 export function ArticlesList({ setSelectedArticle, selectedArticle }) {
   const { getAllArticles } = useContext(ArticlesApiContext);
-  //const [selectedFilterItems, setSelectedFilterItems] = useState([]);
-  const [filterItems, setFilterItems] = useState([]);
   const [data, setData] = useState([getAllArticles]);
   const ws = new WebSocket(window.location.origin.replace(/^http/, "ws"));
-  /*
-  useEffect(() => {
-    const bufferAllTopics = [];
-    data.map((article) => {
-      article.topics.map((topic) => {
-        bufferAllTopics.push(topic.toLowerCase().trim());
-      });
-    });
-    const allTopicsWithCounter = [];
-
-    for (let i = 0; i < bufferAllTopics.length; i++) {
-      const index = allTopicsWithCounter.findIndex((topic) => {
-        return topic.topic === bufferAllTopics[i];
-      });
-
-      if (index !== -1) {
-        allTopicsWithCounter[index].counter++;
-      } else {
-        allTopicsWithCounter.push({ topic: bufferAllTopics[i], counter: 1 });
-      }
-    }
-    setFilterItems(allTopicsWithCounter);
-  }, [data]);
-
-   */
 
   useEffect(() => {
     ws.onmessage = (event) => {
@@ -84,64 +57,16 @@ export function ArticlesList({ setSelectedArticle, selectedArticle }) {
   }, [data]);
 
   useEffect(async () => {
-    //if (selectedFilterItems.length === 0) {
     const articles = await getAllArticles();
     setData(articles);
-    /*} else {
-      const items = [];
-      selectedFilterItems.map((item) => {
-        items.push(item.topic);
-      });
-      fetchJSON(`/api/articles/filter/?topics=${items}`).then((jsonData) => {
-        setData(jsonData.articles);
-      });
-    }
-
-     */
   }, []);
 
   let selectedArticleWidth = "20vw";
   if (selectedArticle === "") {
     selectedArticleWidth = "100vw";
   }
-  /*
-  function changeFilter(topic) {
-    if (!selectedFilterItems.includes(topic)) {
-      setSelectedFilterItems((prevState) => [...prevState, topic]);
-    } else {
-      setSelectedFilterItems(
-        selectedFilterItems.filter(function (item) {
-          return item.topic !== topic.topic;
-        })
-      );
-    }
-  }
-
- */
-
   return (
     <div className="article-list" style={{ width: selectedArticleWidth }}>
-      {/*
-      <div className={"filter-container"}>
-        {filterItems.map((item, key) => (
-          <button
-            key={key}
-            onClick={(e) => {
-              changeFilter(item);
-            }}
-          >
-            {item.topic + " (" + item.counter + ")"}
-          </button>
-        ))}
-
-        <div>
-          {selectedFilterItems.map((item, key) => (
-            <div key={key}>{item.topic}</div>
-          ))}
-        </div>
-
-      </div>
-       */}
       {data && (
         <ArticleCard
           data={data}

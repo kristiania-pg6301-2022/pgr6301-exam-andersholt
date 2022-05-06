@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-export function articlesApi(mongoDatabase) {
+export function ArticlesApi(mongoDatabase) {
   const router = new Router();
   router.get("/all", async (req, res) => {
     const articles = await mongoDatabase
@@ -17,7 +17,7 @@ export function articlesApi(mongoDatabase) {
         updated,
       }))
       .toArray();
-    res.json(articles);
+    res.json(articles).status(200);
   });
 
   router.post("/publish", async (req, res) => {
@@ -28,7 +28,7 @@ export function articlesApi(mongoDatabase) {
       topicsList.push(element.trim().toLowerCase());
     });
 
-    mongoDatabase.collection("articles").insertOne({
+    await mongoDatabase.collection("articles").insertOne({
       title,
       date,
       author,
@@ -40,7 +40,6 @@ export function articlesApi(mongoDatabase) {
 
   router.get("/select/*", async (req, res) => {
     const title = req.query.title;
-    console.log(title);
 
     const article = await mongoDatabase
       .collection("articles")
@@ -56,17 +55,11 @@ export function articlesApi(mongoDatabase) {
         updated,
       }))
       .toArray();
-    if (!article) {
-      res.status(404).json({ errors });
-      return;
-    }
     res.json({ article });
   });
 
   router.put("/select/*", async (req, res) => {
     const originalTitle = req.query.originalTitle;
-
-    console.log(originalTitle);
 
     const { title, updated, author, topics, articleText } = req.body;
     let results = topics.split(",");
@@ -75,7 +68,7 @@ export function articlesApi(mongoDatabase) {
       topicsList.push(element.trim().toLowerCase());
     });
 
-    mongoDatabase.collection("articles").updateOne(
+    await mongoDatabase.collection("articles").updateOne(
       { title: originalTitle },
       {
         $set: {
@@ -92,36 +85,8 @@ export function articlesApi(mongoDatabase) {
 
   router.delete("/select/*", async (req, res) => {
     const title = req.query.title;
-    mongoDatabase.collection("articles").deleteOne({ title: title });
+    await mongoDatabase.collection("articles").deleteOne({ title: title });
     res.json({ message: "done" });
-  });
-
-  router.get("/filter/*", async (req, res) => {
-    const topics = req.query.topics.split(",");
-    console.log(topics);
-    const articles = await mongoDatabase
-      .collection("articles")
-      .find({
-        topics: { $all: topics },
-      })
-      .sort({
-        date: 1,
-      })
-      .map(({ title, date, author, topics, updated }) => ({
-        title,
-        date,
-        author,
-        topics,
-        updated,
-      }))
-      .toArray();
-    console.log(articles.length);
-
-    if (!articles) {
-      res.status(404).json({ errors });
-      return;
-    }
-    res.json({ articles });
   });
 
   return router;
