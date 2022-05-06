@@ -5,6 +5,7 @@
 # PG6301 eksamen Kristiania News
 * Heroku: https://pg6301-exam.herokuapp.com/
 * Test rapport: https://coveralls.io/github/kristiania-pg6301-2022/pgr6301-exam-andersholt
+* Coverage is a bit higher, but because of the used up Github actions minutes, it wont run.
 
 ## Egenutfylling av funksjonelle krav
 
