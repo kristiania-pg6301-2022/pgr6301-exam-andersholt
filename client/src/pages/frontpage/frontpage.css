@@ -1,0 +1,73 @@
+.content-container {
+    width: fit-content;
+    margin: auto;
+    text-align: center;
+}
+
+
+.article-list {
+    bottom: 0;
+    width: 20vw;
+    border-right: black solid;
+    text-align: center;
+    height: 91vh;
+    overflow: scroll;
+    position: fixed;
+    transition: all linear .3s;
+    background: white;
+}
+
+.article-list .article-cards {
+    display: flex;
+    flex-wrap: wrap-reverse;
+    justify-content: center;
+    flex-direction: column-reverse;
+    flex-direction: row-reverse;
+}
+
+.article-list input {
+    width: 25vh;
+    height: fit-content;
+}
+
+#leaveArticle {
+    position: fixed;
+    top: 10vh;
+    right: 1vw;
+}
+
+#article-card {
+    margin: 1vw;
+    border-bottom: solid black;
+    width: 20vw;
+    height: fit-content;
+}
+
+main textarea {
+    width: 70vw;
+    height: 30vh;
+}
+
+main input {
+    width: 20vw;
+    height: 4vh;
+    font-size: 20px;
+}
+
+#article-card:hover {
+    background: black;
+    color: white;
+    transition: all ease-in-out .1s;
+    cursor: pointer;
+}
+
+.frontpage-container {
+    display: flex;
+}
+
+.frontpage-container main {
+    width: 50vw;
+    margin: auto;
+    margin-left: 25vw;
+    margin-top: 8vh;
+}

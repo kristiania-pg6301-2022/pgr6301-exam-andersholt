@@ -1,0 +1,58 @@
+{
+  "name": "exam-pg6301",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "dev": "concurrently npm:dev:client npm:dev:server",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "start": "cd server && npm start",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "verify": "jest --collectCoverage",
+    "verify:client": "cd client && npm run verify",
+    "verify:server": "cd server && npm run verify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-react": "^7.16.7",
+    "babel-jest": "^27.5.1",
+    "concurrently": "^7.0.0",
+    "jest": "^27.5.1",
+    "prettier": "2.6.1"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.2",
+    "mongodb": "^4.5.0"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "testEnvironment": "jsdom",
+    "collectCoverageFrom": [
+      "server/*.{js,jsx,tsx,ts}",
+      "client/src/**/*.{js,jsx,tsx,ts}",
+      "!client/index.jsx"
+    ],
+    "moduleNameMapper": {
+      "\\.(css|less)$": "<rootDir>/client/__mocks__/styleMock.js"
+    }
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  }
+}
